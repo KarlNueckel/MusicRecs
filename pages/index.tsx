@@ -56,27 +56,39 @@ export default function Home() {
 
     setIsLoading(true);
 
-    await fetch('/api/recommendations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        query,
-        userInterests,
-      })
-    })
-      .then((res) => {
-        console.log(res)
-        if (res.ok) return res.json();
-      })
-      .then((recommendations) => {
-        console.log(recommendations.data.Get.Book);
-        setRecommendedBooks(recommendations.data.Get.Book);
+    try {
+      const response = await fetch('/api/recommendations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          userInterests,
+        })
       });
 
-    setIsLoading(false);
-    setLoadedOnce(true);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const recommendations = await response.json();
+      
+      // Check if the response has the expected structure
+      if (!recommendations.data?.Get?.Book) {
+        throw new Error('Invalid response format from server');
+      }
+      
+      console.log(recommendations.data.Get.Book);
+      setRecommendedBooks(recommendations.data.Get.Book);
+      setLoadedOnce(true);
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+      alert(`Failed to get recommendations: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -90,7 +102,7 @@ export default function Home() {
       >
         <div className="flex justify-between">
           <h3 className="mt-2 text-lg font-semibold text-gray-700">
-            {selectedBook?.title}
+            {selectedBook?.title || 'Unknown Title'}
           </h3>
           <Button
             className="hover:font-bold rounded hover:bg-gray-700 p-2 w-20 hover:text-white "
@@ -110,17 +122,17 @@ export default function Home() {
             </div>
           </div>
           <div>
-            <p className="mt-1 text-gray-500"><span className="font-bold">Authors</span>:{' '}{selectedBook?.authors}</p>
+            <p className="mt-1 text-gray-500"><span className="font-bold">Authors</span>:{' '}{selectedBook?.authors || 'Unknown'}</p>
             <p>
-              <span className="font-bold">Genre</span>:{' '}{selectedBook?.categories}
+              <span className="font-bold">Genre</span>:{' '}{selectedBook?.categories || 'Unknown'}
             </p>
             <p>
-              <span className="font-bold">Rating</span>:{' '}{selectedBook?.average_rating}
+              <span className="font-bold">Rating</span>:{' '}{selectedBook?.average_rating || 'N/A'}
             </p>
             <p>
-              <span className="font-bold">Publication Year</span>:{' '}{selectedBook?.published_year}
+              <span className="font-bold">Publication Year</span>:{' '}{selectedBook?.published_year || 'Unknown'}
             </p><br />
-            <p>{selectedBook?.description}</p>
+            <p>{selectedBook?.description || 'No description available.'}</p>
 
             <div className="flex justify-center">
               <a
@@ -193,6 +205,22 @@ export default function Home() {
             <Button className="bg-black text-white w-full rounded-md hover:bg-gray-800 hover:text-white" disabled={isLoading} type="submit" variant="outline">
               Get Recommendations
             </Button>
+            
+            <Button 
+              type="button"
+              className="bg-gray-500 text-white w-full rounded-md hover:bg-gray-600 hover:text-white mt-2" 
+              onClick={async () => {
+                try {
+                  const response = await fetch('/api/test-connection');
+                  const result = await response.json();
+                  alert(result.success ? 'Connection successful!' : `Connection failed: ${result.error}`);
+                } catch (error) {
+                  alert(`Test failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                }
+              }}
+            >
+              Test Connection
+            </Button>
 
           </form>
 
@@ -225,8 +253,8 @@ export default function Home() {
                             <div key={book.isbn10 || book.isbn13} className="w-full md:w-1/3 px-2 mb-4 animate-pop-in">
                               <div className="bg-white p-6 flex items-center flex-col">
                                 <div className='flex justify-between w-full'>
-                                  <h3 className="text-xl font-semibold mb-4 line-clamp-1">{book.title}</h3>
-                                  {process.env.NEXT_PUBLIC_COHERE_CONFIGURED && book._additional.generate.error != "connection to Cohere API failed with status: 429" && (
+                                  <h3 className="text-xl font-semibold mb-4 line-clamp-1">{book.title || 'Unknown Title'}</h3>
+                                  {process.env.NEXT_PUBLIC_COHERE_CONFIGURED && book._additional?.generate?.error !== "connection to Cohere API failed with status: 429" && book._additional?.generate?.singleResult && (
                                       <Popover>
                                         <PopoverTrigger asChild>
                                           <Button className='rounded-full p-2 bg-black cursor-pointer w-10 h-10'>✨</Button>
