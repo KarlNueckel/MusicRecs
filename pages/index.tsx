@@ -1,7 +1,7 @@
 import { SyntheticEvent, useState } from 'react';
 import CircleLoader from 'react-spinners/CircleLoader';
 import Modal from 'react-modal';
-import { Book } from 'types';
+import { Book, Track } from 'types';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,16 +28,16 @@ export default function Home() {
   const [loadedOnce, setLoadedOnce] = useState(false);
   const [query, setQuery] = useState('');
   const [userInterests, setUserInterests] = useState('');
-  const [recommendedBooks, setRecommendedBooks] = useState([]);
+  const [recommendedTracks, setRecommendedTracks] = useState<Track[]>([]);
   const [modalIsOpen, setIsOpen] = useState(false);
-  const [selectedBook, setSelectedbook] = useState<Book | undefined>(undefined);
+  const [selectedTrack, setSelectedTrack] = useState<Track | undefined>(undefined);
 
-  const openModal = (book_title: string) => {
-    const bookSelection = recommendedBooks.filter((book: Book) => {
-      return book.title === book_title;
+  const openModal = (track_name: string) => {
+    const trackSelection = recommendedTracks.filter((track: Track) => {
+      return track.name === track_name;
     });
-    console.log(bookSelection);
-    setSelectedbook(bookSelection[0]);
+    console.log(trackSelection);
+    setSelectedTrack(trackSelection[0]);
     setIsOpen(true);
   };
 
@@ -50,7 +50,7 @@ export default function Home() {
 
     // Check Inputs
     if (query === '') {
-      alert("Please let us know what you'd like to learn!");
+             alert("Please let us know what kind of music you're looking for!");
       return;
     }
 
@@ -76,12 +76,12 @@ export default function Home() {
       const recommendations = await response.json();
       
       // Check if the response has the expected structure
-      if (!recommendations.data?.Get?.Book) {
+      if (!recommendations.data?.Get?.Track) {
         throw new Error('Invalid response format from server');
       }
       
-      console.log(recommendations.data.Get.Book);
-      setRecommendedBooks(recommendations.data.Get.Book);
+      console.log(recommendations.data.Get.Track);
+      setRecommendedTracks(recommendations.data.Get.Track);
       setLoadedOnce(true);
     } catch (error) {
       console.error('Error fetching recommendations:', error);
@@ -102,7 +102,7 @@ export default function Home() {
       >
         <div className="flex justify-between">
           <h3 className="mt-2 text-lg font-semibold text-gray-700">
-            {selectedBook?.title || 'Unknown Title'}
+            {selectedTrack?.name || 'Unknown Track'}
           </h3>
           <Button
             className="hover:font-bold rounded hover:bg-gray-700 p-2 w-20 hover:text-white "
@@ -115,36 +115,40 @@ export default function Home() {
           <div className='flex justify-center py-10'>
             <div className="w-48 h-72">
               <img
-                src={selectedBook?.thumbnail}
-                alt={"Thumbnail of the book " + selectedBook?.title}
+                src={selectedTrack?.album_image_url}
+                alt={"Album cover for " + selectedTrack?.name}
                 className="w-full h-full rounded-lg shadow-lg"
               />
             </div>
           </div>
           <div>
-            <p className="mt-1 text-gray-500"><span className="font-bold">Authors</span>:{' '}{selectedBook?.authors || 'Unknown'}</p>
+            <p className="mt-1 text-gray-500"><span className="font-bold">Artists</span>:{' '}{selectedTrack?.artists || 'Unknown'}</p>
             <p>
-              <span className="font-bold">Genre</span>:{' '}{selectedBook?.categories || 'Unknown'}
+              <span className="font-bold">Album</span>:{' '}{selectedTrack?.album || 'Unknown'}
             </p>
             <p>
-              <span className="font-bold">Rating</span>:{' '}{selectedBook?.average_rating || 'N/A'}
+              <span className="font-bold">Genres</span>:{' '}{selectedTrack?.genres || 'Unknown'}
             </p>
             <p>
-              <span className="font-bold">Publication Year</span>:{' '}{selectedBook?.published_year || 'Unknown'}
+              <span className="font-bold">Popularity</span>:{' '}{selectedTrack?.popularity || 'N/A'}
+            </p>
+            <p>
+              <span className="font-bold">Release Date</span>:{' '}{selectedTrack?.release_date || 'Unknown'}
             </p><br />
-            <p>{selectedBook?.description || 'No description available.'}</p>
+            <p>Duration: {Math.round((selectedTrack?.duration_ms || 0) / 1000 / 60)}:{(Math.round((selectedTrack?.duration_ms || 0) / 1000) % 60).toString().padStart(2, '0')}</p>
 
             <div className="flex justify-center">
-              <a
-                className="hover:animate-pulse"
-                target="_blank"
-                href={'https://www.amazon.com/s?k=' + selectedBook?.isbn10}
-              >
-                <img
-                  className="w-60"
-                  src="https://kentuckynerd.com/wp-content/uploads/2019/05/amazon-buy-now-button.jpg"
-                />
-              </a>
+                             <a
+                 className="hover:animate-pulse"
+                 target="_blank"
+                 href={selectedTrack?.track_url || '#'}
+               >
+                 <img
+                   className="w-60"
+                   src="https://storage.googleapis.com/pr-newsroom-wp/1/2018/11/Spotify_Logo_RGB_White.png"
+                   alt="Listen on Spotify"
+                 />
+               </a>
             </div>
           </div>
 
@@ -152,9 +156,9 @@ export default function Home() {
       </Modal>
       <div className="mb-auto py-10 px-4 bg-gray-100">
         <div className="container mx-auto">
-          <h1 className="text-3xl font-black font-bold mb-6 text-center">
-            Book Recommendations
-          </h1>
+                     <h1 className="text-3xl font-black font-bold mb-6 text-center">
+             Music Recommendations
+           </h1>
 
           <form
             id="recommendation-form"
@@ -162,17 +166,17 @@ export default function Home() {
             onSubmit={getRecommendations}
           >
             <div className="mb-4">
-            <label
-                htmlFor="favorite-books"
-                className="block text-gray-700 font-bold mb-2"
-              >
-                What would you like to get a book recommendation on?
-              </label>
+                           <label
+                 htmlFor="favorite-books"
+                 className="block text-gray-700 font-bold mb-2"
+               >
+                 What kind of music are you looking for?
+               </label>
               <Input 
                 type="text"
                 id="favorite-books"
                 name="favorite-books"
-                placeholder="I'd like to learn..."
+                                 placeholder="rock, jazz, electronic, ambient..."
                 className="block w-full px-4 py-2 border border-gray-300 bg-white rounded-md shadow-sm "
                 value={query}
                 onChange={(e) => {
@@ -239,7 +243,7 @@ export default function Home() {
               {loadedOnce ? (
                 <>
                   <h2 className="text-2xl font-bold mb-4 text-center">
-                    Recommended Books
+                    Recommended Tracks
                   </h2>
                   <div
                     id="recommended-books"
@@ -248,22 +252,22 @@ export default function Home() {
                     {/* <!-- Recommended books dynamically added here --> */}
                     <section className="container mx-auto mb-12">
                       <div className="flex flex-wrap -mx-2">
-                        {recommendedBooks.map((book: Book) => {
+                        {recommendedTracks.map((track: Track) => {
                           return (
-                            <div key={book.isbn10 || book.isbn13} className="w-full md:w-1/3 px-2 mb-4 animate-pop-in">
+                            <div key={track.spotify_id} className="w-full md:w-1/3 px-2 mb-4 animate-pop-in">
                               <div className="bg-white p-6 flex items-center flex-col">
                                 <div className='flex justify-between w-full'>
-                                  <h3 className="text-xl font-semibold mb-4 line-clamp-1">{book.title || 'Unknown Title'}</h3>
-                                  {process.env.NEXT_PUBLIC_COHERE_CONFIGURED && book._additional?.generate?.error !== "connection to Cohere API failed with status: 429" && book._additional?.generate?.singleResult && (
+                                  <h3 className="text-xl font-semibold mb-4 line-clamp-1">{track.name || 'Unknown Track'}</h3>
+                                                                      {process.env.NEXT_PUBLIC_COHERE_CONFIGURED && track._additional?.generate?.error !== "connection to Cohere API failed with status: 429" && track._additional?.generate?.singleResult && (
                                       <Popover>
                                         <PopoverTrigger asChild>
                                           <Button className='rounded-full p-2 bg-black cursor-pointer w-10 h-10'>✨</Button>
                                         </PopoverTrigger>
                                         <PopoverContent className="w-80 h-80 overflow-auto">
                                           <div>
-                                            <p className='text-2xl font-bold'>Why you&apos;ll like this book:</p>
+                                            <p className='text-2xl font-bold'>Why you&apos;ll like this track:</p>
                                             <br/>
-                                            <p>{book._additional.generate.singleResult}</p>
+                                            <p>{track._additional.generate.singleResult}</p>
                                           </div>
                                         </PopoverContent>
                                       </Popover>
@@ -272,14 +276,14 @@ export default function Home() {
                                 </div>
                                 <div className='w-48 h-72'>
                                   <img
-                                    src={book.thumbnail}
-                                    alt={"Thumbnail of the book " + book.title}
+                                    src={track.album_image_url}
+                                    alt={"Album cover for " + track.name}
                                     className="w-full h-full rounded-lg shadow-lg"
                                   />
                                 </div>
-                                <p className="mt-4 text-gray-500 line-clamp-1">{book.authors}</p>
+                                <p className="mt-4 text-gray-500 line-clamp-1">{track.artists}</p>
                                 <div className='flex'>
-                                  <Button className="bg-black text-white w-full rounded-md hover:bg-gray-800 hover:text-white" type="submit" variant="outline" onClick={() => { openModal(book.title) }}>
+                                                                      <Button className="bg-black text-white w-full rounded-md hover:bg-gray-800 hover:text-white" type="submit" variant="outline" onClick={() => { openModal(track.name) }}>
                                     Learn More
                                   </Button>
                                 </div>

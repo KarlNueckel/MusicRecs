@@ -22,21 +22,34 @@ export default async function handler(
         headers['X-Cohere-Api-Key'] = process.env.COHERE_API_KEY;
     }
     
+    if (!weaviateClusterUrl || !process.env.WEAVIATE_API_KEY) {
+      return res.status(500).json({ 
+        success: false, 
+        error: 'WEAVIATE_CLUSTER_URL and WEAVIATE_API_KEY must be set in environment variables'
+      });
+    }
+
     const client: WeaviateClient = weaviate.client({
       scheme: 'https',
-      host: weaviateClusterUrl || 'zxzyqcyksbw7ozpm5yowa.c0.us-west2.gcp.weaviate.cloud',
-      apiKey: new ApiKey(process.env.WEAVIATE_API_KEY || 'n6mdfI32xrXF3DH76i8Pwc2IajzLZop2igb6'),
+      host: weaviateClusterUrl,
+      apiKey: new ApiKey(process.env.WEAVIATE_API_KEY),
       headers: headers,
     });
 
     // Test the connection by getting the schema
     const schema = await client.schema.getter().do();
     
+    // Get detailed class information
+    const classNames = schema.classes?.map((cls: any) => cls.class) || [];
+    const trackClass = schema.classes?.find((cls: any) => cls.class === 'Track');
+    
     res.status(200).json({ 
       success: true, 
       message: 'Weaviate connection successful',
       classes: schema.classes?.length || 0,
-      hasBookClass: schema.classes?.some((cls: any) => cls.class === 'Book') || false
+      classNames: classNames,
+      hasTrackClass: !!trackClass,
+      trackClassDetails: trackClass || null
     });
   } catch (error) {
     console.error('Weaviate connection test failed:', error);
