@@ -11,9 +11,9 @@ export default async function handler(
   try {
     console.log('API called with method:', req.method);
     const { method } = req;
-    let { query, userInterests } = req.body;
+    let { query, userInterests, favoriteSongs, excludeFavoriteArtists } = req.body;
     
-    console.log('Request body:', { query, userInterests });
+    console.log('Request body:', { query, userInterests, favoriteSongs, excludeFavoriteArtists });
 
     const weaviateClusterUrl = process.env.WEAVIATE_CLUSTER_URL?.replace("https://", "")
     console.log('Weaviate cluster URL:', weaviateClusterUrl);
@@ -125,6 +125,66 @@ export default async function handler(
             const recData = await recDataBuilder.do();
             console.log('NearText query successful, data length:', recData.data?.Get?.[targetClass]?.length || 0);
             
+            // Filter out favorite songs if provided
+            if (favoriteSongs && favoriteSongs.trim() && targetClass === 'Track') {
+              const favoriteSongNames = favoriteSongs.toLowerCase().split(/[,\s]+/).filter((name: string) => name.trim());
+              console.log('Filtering out favorite songs:', favoriteSongNames);
+              
+              if (recData.data?.Get?.[targetClass]) {
+                recData.data.Get[targetClass] = recData.data.Get[targetClass].filter((track: any) => {
+                  const trackName = track.name?.toLowerCase() || '';
+                  
+                  // More precise matching using word boundaries and exact matches
+                  return !favoriteSongNames.some((favoriteName: string) => {
+                    // Exact match
+                    if (trackName === favoriteName) return true;
+                    
+                    // Word boundary match (song name starts or ends with favorite name)
+                    const trackWords = trackName.split(/\s+/);
+                    const favoriteWords = favoriteName.split(/\s+/);
+                    
+                                         // Check if all words in favorite name appear in track name in order
+                     if (favoriteWords.length > 1) {
+                       const trackNameLower = trackName.toLowerCase();
+                       const favoriteNameLower = favoriteName.toLowerCase();
+                       
+                       // For multi-word song names, check if they're very similar
+                       if (trackNameLower.includes(favoriteNameLower) || favoriteNameLower.includes(trackNameLower)) {
+                         // Additional check: ensure it's not just a partial word match
+                         // Count how many words from favorite name appear in track name
+                         const commonWords = favoriteWords.filter(word => trackWords.includes(word));
+                         return commonWords.length >= Math.min(2, favoriteWords.length);
+                       }
+                     }
+                    
+                    // For single word names, be more strict - require exact word match
+                    if (favoriteWords.length === 1) {
+                      return trackWords.includes(favoriteWords[0]);
+                    }
+                    
+                    return false;
+                  });
+                });
+                console.log('After filtering favorite songs, data length:', recData.data.Get[targetClass].length);
+              }
+            }
+            
+            // Filter out favorite artists if toggle is enabled
+            if (excludeFavoriteArtists && userInterests && userInterests.trim() && targetClass === 'Track') {
+              const favoriteArtistNames = userInterests.toLowerCase().split(/[,\s]+/).filter((name: string) => name.trim());
+              console.log('Filtering out favorite artists:', favoriteArtistNames);
+              
+              if (recData.data?.Get?.[targetClass]) {
+                recData.data.Get[targetClass] = recData.data.Get[targetClass].filter((track: any) => {
+                  const trackArtists = track.artists?.toLowerCase() || '';
+                  return !favoriteArtistNames.some((artistName: string) => 
+                    trackArtists.includes(artistName) || artistName.includes(trackArtists)
+                  );
+                });
+                console.log('After filtering favorite artists, data length:', recData.data.Get[targetClass].length);
+              }
+            }
+            
                     // Temporarily disable generation to avoid the Cohere client error
         // if (process.env.COHERE_API_KEY) {
         //   console.log('Adding Cohere generation...');
@@ -205,6 +265,66 @@ export default async function handler(
         console.log('Executing BM25 query...');
         const recData = await recDataBuilder.do();
         console.log('BM25 query successful, data length:', recData.data?.Get?.[targetClass]?.length || 0);
+        
+        // Filter out favorite songs if provided
+        if (favoriteSongs && favoriteSongs.trim() && targetClass === 'Track') {
+          const favoriteSongNames = favoriteSongs.toLowerCase().split(/[,\s]+/).filter((name: string) => name.trim());
+          console.log('Filtering out favorite songs:', favoriteSongNames);
+          
+          if (recData.data?.Get?.[targetClass]) {
+            recData.data.Get[targetClass] = recData.data.Get[targetClass].filter((track: any) => {
+              const trackName = track.name?.toLowerCase() || '';
+              
+              // More precise matching using word boundaries and exact matches
+              return !favoriteSongNames.some((favoriteName: string) => {
+                // Exact match
+                if (trackName === favoriteName) return true;
+                
+                // Word boundary match (song name starts or ends with favorite name)
+                const trackWords = trackName.split(/\s+/);
+                const favoriteWords = favoriteName.split(/\s+/);
+                
+                // Check if all words in favorite name appear in track name in order
+                if (favoriteWords.length > 1) {
+                  const trackNameLower = trackName.toLowerCase();
+                  const favoriteNameLower = favoriteName.toLowerCase();
+                  
+                  // For multi-word song names, check if they're very similar
+                  if (trackNameLower.includes(favoriteNameLower) || favoriteNameLower.includes(trackNameLower)) {
+                    // Additional check: ensure it's not just a partial word match
+                    // Count how many words from favorite name appear in track name
+                    const commonWords = favoriteWords.filter(word => trackWords.includes(word));
+                    return commonWords.length >= Math.min(2, favoriteWords.length);
+                  }
+                }
+                
+                // For single word names, be more strict - require exact word match
+                if (favoriteWords.length === 1) {
+                  return trackWords.includes(favoriteWords[0]);
+                }
+                
+                return false;
+              });
+            });
+            console.log('After filtering favorite songs, data length:', recData.data.Get[targetClass].length);
+          }
+        }
+        
+        // Filter out favorite artists if toggle is enabled
+        if (excludeFavoriteArtists && userInterests && userInterests.trim() && targetClass === 'Track') {
+          const favoriteArtistNames = userInterests.toLowerCase().split(/[,\s]+/).filter((name: string) => name.trim());
+          console.log('Filtering out favorite artists:', favoriteArtistNames);
+          
+          if (recData.data?.Get?.[targetClass]) {
+            recData.data.Get[targetClass] = recData.data.Get[targetClass].filter((track: any) => {
+              const trackArtists = track.artists?.toLowerCase() || '';
+              return !favoriteArtistNames.some((artistName: string) => 
+                trackArtists.includes(artistName) || artistName.includes(trackArtists)
+              );
+            });
+            console.log('After filtering favorite artists, data length:', recData.data.Get[targetClass].length);
+          }
+        }
         
         // If no results, try getting some random tracks
         if (!recData.data?.Get?.[targetClass] || recData.data.Get[targetClass].length === 0) {
