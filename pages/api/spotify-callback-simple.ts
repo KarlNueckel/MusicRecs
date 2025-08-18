@@ -11,10 +11,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  console.log('=== SPOTIFY CALLBACK DEBUG ===');
-  console.log('Query params:', req.query);
-  console.log('All cookies:', Object.keys(req.cookies));
-
   const { code, state, error } = req.query;
 
   if (error) {
@@ -25,22 +21,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.redirect('/?error=missing_params');
   }
 
-  // Verify state parameter with better error handling
+  // Verify state parameter
   const storedState = req.cookies.spotify_state;
-  console.log('State verification:', {
-    receivedState: state,
-    storedState: storedState,
-    hasStoredState: !!storedState,
-    allCookies: Object.keys(req.cookies)
-  });
-  
-  if (!storedState) {
-    console.error('No stored state found in cookies');
-    return res.redirect('/?error=no_stored_state');
-  }
-  
   if (state !== storedState) {
-    console.error('State mismatch:', { received: state, stored: storedState });
     return res.redirect('/?error=invalid_state');
   }
 
@@ -69,48 +52,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('Token exchange successful, got access token');
     const { access_token, refresh_token } = tokenData;
 
-    // Fetch user ID now (before rate limiting kicks in)
-    let userId = null;
-    try {
-      console.log('Fetching user profile to get user ID...');
-      const userResponse = await fetch('https://api.spotify.com/v1/me', {
-        headers: {
-          'Authorization': `Bearer ${access_token}`,
-        },
-      });
-
-      if (userResponse.ok) {
-        const userData = await userResponse.json();
-        userId = userData.id;
-        console.log('Successfully got user ID:', userId);
-      } else {
-        console.log('Could not get user ID, will fetch later during playlist creation');
-      }
-    } catch (error) {
-      console.log('Error fetching user ID, will fetch later during playlist creation:', error);
-    }
-
-    // Store tokens and user ID securely
-    const cookies = [
+    // Store tokens securely (skip user profile fetch to avoid rate limiting)
+    res.setHeader('Set-Cookie', [
       `spotify_access_token=${access_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=3600`,
       `spotify_refresh_token=${refresh_token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`,
       `spotify_authenticated=true; Path=/; HttpOnly; SameSite=Lax; Max-Age=3600`,
-    ];
-    
-    // Add user ID cookie if we got it
-    if (userId) {
-      cookies.push(`spotify_user_id=${userId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=3600`);
-    }
-    
-    res.setHeader('Set-Cookie', cookies);
-    
-    console.log('Setting cookies:', {
-      accessTokenLength: access_token.length,
-      refreshTokenLength: refresh_token.length,
-      hasUserId: !!userId,
-      userId: userId,
-      cookies: cookies
-    });
+    ]);
 
     // Redirect back to main page with success
     res.redirect('/?spotify_authenticated=true');

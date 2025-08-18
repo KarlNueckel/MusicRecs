@@ -119,7 +119,7 @@ export default async function handler(
               .withClassName(targetClass)
               .withFields(fields)
               .withNearText(nearText)
-              .withLimit(20);
+              .withLimit(100);
               
             console.log('Executing nearText query...');
             const recData = await recDataBuilder.do();
@@ -242,7 +242,7 @@ export default async function handler(
           .withBm25({
             query: bm25Query
           })
-          .withLimit(20);
+          .withLimit(100);
         
         // Temporarily disable generation to avoid the Cohere client error
         // if (process.env.COHERE_API_KEY) {
@@ -334,7 +334,7 @@ export default async function handler(
               .get()
               .withClassName(targetClass)
               .withFields(fields)
-              .withLimit(20)
+              .withLimit(100)
               .do();
             console.log('Random tracks found:', randomData.data?.Get?.[targetClass]?.length || 0);
             res.status(200).json(randomData);

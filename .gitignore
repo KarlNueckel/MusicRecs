@@ -83,12 +83,33 @@ celerybeat-schedule
 # Environments
 .env
 .env.local
+.env.development
+.env.production
 .venv
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Spotify API credentials (NEVER commit these!)
+*.env
+.env*
+
+# Error logs and temporary files
+error-log.txt
+*.log
+temp/
+tmp/
+
+# Large data files (optional - you can commit these if you want)
+data-pipeline/exports/
+data-pipeline/tracks_database.json
+data-pipeline/optimized_tracks.csv
+
+# Development files
+.DS_Store
+Thumbs.db
 
 # Spyder project settings
 .spyderproject

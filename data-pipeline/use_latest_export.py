@@ -1,104 +1,53 @@
-import weaviate
-import pandas as pd
 import os
+import pandas as pd
+import weaviate
 from dotenv import load_dotenv
+import glob
 
-# Load environment variables
-load_dotenv('../.env.local')
-
-# Weaviate configuration
-WEAVIATE_CLUSTER_URL = os.getenv('WEAVIATE_CLUSTER_URL')
-WEAVIATE_API_KEY = os.getenv('WEAVIATE_API_KEY')
-
-if not WEAVIATE_CLUSTER_URL or not WEAVIATE_API_KEY:
-    print("Error: WEAVIATE_CLUSTER_URL and WEAVIATE_API_KEY must be set in environment variables")
-    exit(1)
+load_dotenv()
 
 def create_weaviate_client():
     """Create and return a Weaviate client"""
-    client = weaviate.connect_to_weaviate_cloud(
-        cluster_url=WEAVIATE_CLUSTER_URL,
-        auth_credentials=weaviate.auth.AuthApiKey(api_key=WEAVIATE_API_KEY)
+    weaviate_url = os.getenv('WEAVIATE_CLUSTER_URL')
+    weaviate_api_key = os.getenv('WEAVIATE_API_KEY')
+    
+    if not weaviate_url or not weaviate_api_key:
+        raise ValueError("WEAVIATE_CLUSTER_URL and WEAVIATE_API_KEY must be set in environment variables")
+    
+    # Remove https:// if present
+    weaviate_url = weaviate_url.replace("https://", "")
+    
+    return weaviate.Client(
+        url=f"https://{weaviate_url}",
+        auth_client_secret=weaviate.Auth.api_key(weaviate_api_key),
+        additional_headers={
+            "X-OpenAI-Api-Key": os.getenv('OPENAI_API_KEY') if os.getenv('OPENAI_API_KEY') else "",
+            "X-Cohere-Api-Key": os.getenv('COHERE_API_KEY') if os.getenv('COHERE_API_KEY') else ""
+        }
     )
-    return client
+
+def get_latest_export_file():
+    """Get the most recent CSV file from the exports directory"""
+    exports_dir = os.path.join(os.path.dirname(__file__), 'exports')
+    csv_files = glob.glob(os.path.join(exports_dir, 'tracks_*.csv'))
+    
+    if not csv_files:
+        raise FileNotFoundError("No track CSV files found in exports directory")
+    
+    # Sort by modification time (newest first)
+    latest_file = max(csv_files, key=os.path.getmtime)
+    return latest_file
 
 def create_track_collection(client):
-    """Create the Track collection in Weaviate"""
+    """Create the Track collection if it doesn't exist"""
     try:
         # Check if collection already exists
         collections = client.collections.list_all()
-        if any(col.name == 'Track' for col in collections):
+        if any(col.name == "Track" for col in collections):
             print("Track collection already exists!")
             return
         
-        # Define the Track class schema
-        track_class = {
-            "class": "Track",
-            "description": "A music track with metadata",
-            "properties": [
-                {
-                    "name": "spotify_id",
-                    "dataType": ["string"],
-                    "description": "Spotify track ID"
-                },
-                {
-                    "name": "name",
-                    "dataType": ["string"],
-                    "description": "Track name"
-                },
-                {
-                    "name": "artists",
-                    "dataType": ["string"],
-                    "description": "Track artists"
-                },
-                {
-                    "name": "album",
-                    "dataType": ["string"],
-                    "description": "Album name"
-                },
-                {
-                    "name": "genres",
-                    "dataType": ["string"],
-                    "description": "Track genres"
-                },
-                {
-                    "name": "popularity",
-                    "dataType": ["int"],
-                    "description": "Track popularity score"
-                },
-                {
-                    "name": "duration_ms",
-                    "dataType": ["int"],
-                    "description": "Track duration in milliseconds"
-                },
-                {
-                    "name": "release_date",
-                    "dataType": ["string"],
-                    "description": "Release date"
-                },
-                {
-                    "name": "preview_url",
-                    "dataType": ["string"],
-                    "description": "Preview URL"
-                },
-                {
-                    "name": "track_url",
-                    "dataType": ["string"],
-                    "description": "Spotify track URL"
-                },
-                {
-                    "name": "explicit",
-                    "dataType": ["boolean"],
-                    "description": "Whether track is explicit"
-                },
-                {
-                    "name": "album_image_url",
-                    "dataType": ["string"],
-                    "description": "Album cover image URL"
-                }
-            ],
-            "vectorizer": "text2vec-openai" if os.getenv('OPENAI_API_KEY') else "none"
-        }
+        print("Creating Track collection...")
         
         # Create the collection using the new API
         client.collections.create(
@@ -125,17 +74,26 @@ def create_track_collection(client):
     except Exception as e:
         print(f"Error creating Track collection: {e}")
 
-def populate_tracks(client):
-    """Populate the Track collection with data from CSV"""
+def populate_tracks_from_file(client, csv_path):
+    """Populate the Track collection with data from a specific CSV file"""
     try:
-        # Read the CSV file
-        csv_path = os.path.join(os.path.dirname(__file__), 'tracks_1000.csv')
+        print(f"Reading CSV file: {csv_path}")
         df = pd.read_csv(csv_path)
         
         print(f"Found {len(df)} tracks in CSV file")
         
+        # Check if Track collection exists, if not create it
+        collections = client.collections.list_all()
+        if not any(col.name == "Track" for col in collections):
+            print("Track collection doesn't exist. Creating it...")
+            create_track_collection(client)
+        
         # Get the Track collection
         track_collection = client.collections.get("Track")
+        
+        # Clear existing data
+        print("Clearing existing tracks...")
+        track_collection.delete_many()
         
         # Convert DataFrame to list of dictionaries
         tracks = []
@@ -175,20 +133,25 @@ def populate_tracks(client):
         print(f"Error populating tracks: {e}")
 
 def main():
-    """Main function to create collection and populate with data"""
-    print("Connecting to Weaviate...")
-    client = create_weaviate_client()
-    
+    """Main function to use the latest export file"""
     try:
-        print("Creating Track collection...")
-        create_track_collection(client)
+        # Get the latest export file
+        latest_file = get_latest_export_file()
+        print(f"Using latest export file: {os.path.basename(latest_file)}")
         
-        print("Populating tracks...")
-        populate_tracks(client)
+        # Connect to Weaviate
+        print("Connecting to Weaviate...")
+        client = create_weaviate_client()
         
-        print("Done!")
-    finally:
-        client.close()
+        try:
+            # Populate with the latest data
+            populate_tracks_from_file(client, latest_file)
+            print("Done!")
+        finally:
+            client.close()
+            
+    except Exception as e:
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
     main()

@@ -1,4 +1,4 @@
-import React, { SyntheticEvent, useState } from 'react';
+import React, { SyntheticEvent, useState, useEffect } from 'react';
 import CircleLoader from 'react-spinners/CircleLoader';
 import Modal from 'react-modal';
 import { Book, Track } from 'types';
@@ -33,6 +33,11 @@ const customStyles = {
 };
 
 export default function Home() {
+  // Set up modal app element for accessibility
+  useEffect(() => {
+    Modal.setAppElement('#__next');
+  }, []);
+
   const [isLoading, setIsLoading] = useState(false);
   const [loadedOnce, setLoadedOnce] = useState(false);
   const [query, setQuery] = useState('');
@@ -47,6 +52,7 @@ export default function Home() {
   const [isCreatingPlaylists, setIsCreatingPlaylists] = useState(false);
   const [spotifyConfigured, setSpotifyConfigured] = useState<boolean | null>(null);
   const [spotifyAuthenticated, setSpotifyAuthenticated] = useState<boolean>(false);
+  const [playlistError, setPlaylistError] = useState<string | null>(null);
 
   // Debug logging
   React.useEffect(() => {
@@ -70,10 +76,13 @@ export default function Home() {
   React.useEffect(() => {
     const checkSpotifyConfig = async () => {
       try {
+        console.log('Checking Spotify configuration...');
         // Use a different endpoint to check configuration
         const response = await fetch('/api/test-spotify-config');
         const data = await response.json();
+        console.log('Spotify config response:', data);
         setSpotifyConfigured(data.configured);
+        console.log('Set spotifyConfigured to:', data.configured);
       } catch (error) {
         console.error('Error checking Spotify config:', error);
         setSpotifyConfigured(false);
@@ -92,24 +101,69 @@ export default function Home() {
 
     const checkAuthentication = async () => {
       try {
-        const response = await fetch('/api/create-playlists', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ tracks: [], query: 'test', userInterests: 'test' })
-        });
+        console.log('Checking Spotify authentication...');
+        const response = await fetch('/api/check-spotify-auth');
+        const data = await response.json();
         
-        if (response.status === 401) {
-          setSpotifyAuthenticated(false);
-        } else {
+        console.log('Authentication check response:', { status: response.status, data });
+        
+        if (response.ok && data.authenticated) {
+          console.log('✅ Spotify authentication confirmed');
           setSpotifyAuthenticated(true);
+        } else {
+          console.log('❌ Spotify authentication failed:', data.error);
+          setSpotifyAuthenticated(false);
         }
       } catch (error) {
+        console.error('Error checking authentication:', error);
         setSpotifyAuthenticated(false);
       }
     };
     
     checkAuthentication();
   }, [spotifyConfigured]);
+
+  // Manual authentication check function
+  const manualAuthCheck = async () => {
+    try {
+      console.log('Manual authentication check...');
+      const response = await fetch('/api/check-spotify-auth');
+      const data = await response.json();
+      
+      console.log('Manual auth check response:', { status: response.status, data });
+      
+      if (response.ok && data.authenticated) {
+        console.log('✅ Manual auth check confirmed');
+        setSpotifyAuthenticated(true);
+        alert('Authentication confirmed! You can now create playlists.');
+      } else {
+        console.log('❌ Manual auth check failed:', data.error);
+        setSpotifyAuthenticated(false);
+        alert('Authentication failed: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Manual auth check error:', error);
+      setSpotifyAuthenticated(false);
+      alert('Authentication check error: ' + error);
+    }
+  };
+
+  // Manual configuration check function
+  const manualConfigCheck = async () => {
+    try {
+      console.log('Manual configuration check...');
+      const response = await fetch('/api/test-spotify-config');
+      const data = await response.json();
+      
+      console.log('Manual config check response:', data);
+      setSpotifyConfigured(data.configured);
+      alert(`Spotify configuration: ${data.configured ? '✅ Configured' : '❌ Not configured'}`);
+    } catch (error) {
+      console.error('Manual config check error:', error);
+      setSpotifyConfigured(false);
+      alert('Configuration check error: ' + error);
+    }
+  };
 
   const openModal = (track_name: string) => {
     const trackSelection = recommendedTracks.filter((track: Track) => {
@@ -126,7 +180,12 @@ export default function Home() {
 
   const createPlaylists = async () => {
     setIsCreatingPlaylists(true);
+    setPlaylistError(null); // Clear any previous errors
+    
     try {
+      console.log('Starting playlist creation...');
+      console.log('Tracks to create playlists with:', recommendedTracks.length);
+      
       // First, check if we have Spotify tokens
       const response = await fetch('/api/create-playlists', {
         method: 'POST',
@@ -140,28 +199,39 @@ export default function Home() {
         }),
       });
 
+      console.log('Playlist creation response status:', response.status);
+
       if (response.status === 401) {
         // Not authenticated, redirect to Spotify auth
+        console.log('Not authenticated, redirecting to Spotify auth...');
         window.location.href = '/api/spotify-auth';
         return;
       }
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+        console.error('Playlist creation failed:', response.status, errorData);
+        
         if (errorData.error === 'Spotify client ID not configured') {
-          alert('Spotify integration is not configured. Please check the setup guide below the button.');
+          setPlaylistError('Spotify integration is not configured. Please check the setup guide below the button.');
         } else {
-          throw new Error(errorData.error || 'Failed to create playlists');
+          // Show a more detailed error message
+          const errorMessage = `Playlist creation failed (${response.status}): ${errorData.error || errorData.details || 'Unknown error'}`;
+          console.error(errorMessage);
+          setPlaylistError(errorMessage);
         }
         return;
       }
 
       const result = await response.json();
+      console.log('Playlist creation successful:', result);
       setPlaylists(result.playlists);
       setPlaylistModalOpen(true);
     } catch (error) {
       console.error('Error creating playlists:', error);
-      alert(`Failed to create playlists: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = `Failed to create playlists: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      console.error(errorMessage);
+      setPlaylistError(errorMessage);
     } finally {
       setIsCreatingPlaylists(false);
     }
@@ -179,7 +249,7 @@ export default function Home() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/recommendations', {
+      const response = await fetch('/api/fast-recommendations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -232,6 +302,9 @@ export default function Home() {
             </h1>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
               Discover your next favorite songs with AI-powered recommendations
+            </p>
+            <p className="text-sm text-green-400 mt-2">
+              ⚡ Powered by 120,000+ high-quality tracks
             </p>
           </div>
         </div>
@@ -528,6 +601,20 @@ export default function Home() {
                         </svg>
                         Connect to Spotify
                       </Button>
+                      <Button 
+                        type="button"
+                        className="w-full mt-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm" 
+                        onClick={manualAuthCheck}
+                      >
+                        🔍 Check Authentication Status
+                      </Button>
+                      <Button 
+                        type="button"
+                        className="w-full mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm" 
+                        onClick={manualConfigCheck}
+                      >
+                        ⚙️ Check Configuration Status
+                      </Button>
                     </div>
                   ) : (
                     <Button 
@@ -559,6 +646,21 @@ export default function Home() {
                       )}
                     </Button>
                   )}
+                  
+                  {/* Error Display */}
+                  {playlistError && (
+                    <div className="mt-4 p-4 bg-red-500/20 border border-red-500/30 rounded-lg">
+                      <p className="text-red-300 font-semibold mb-2">❌ Playlist Creation Failed</p>
+                      <p className="text-sm text-red-200 whitespace-pre-wrap">{playlistError}</p>
+                      <button 
+                        onClick={() => setPlaylistError(null)}
+                        className="mt-2 text-xs text-red-400 hover:text-red-300 underline"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  )}
+                  
                   <div className="text-center mt-2">
                     {spotifyConfigured === false ? (
                       <div className="p-4 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">

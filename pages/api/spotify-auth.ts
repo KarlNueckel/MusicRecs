@@ -32,8 +32,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const state = Math.random().toString(36).substring(7);
   
-  // Store state in session/cookie for verification
-  res.setHeader('Set-Cookie', `spotify_state=${state}; Path=/; HttpOnly; SameSite=Lax`);
+  // Store state in session/cookie for verification with better settings
+  res.setHeader('Set-Cookie', `spotify_state=${state}; Path=/; HttpOnly; SameSite=Lax; Max-Age=3600; Secure=false`);
+  
+  console.log('Set state cookie:', { state, cookieValue: `spotify_state=${state}` });
 
   const authUrl = `https://accounts.spotify.com/authorize?${new URLSearchParams({
     response_type: 'code',
