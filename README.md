@@ -84,17 +84,20 @@ npm install
 ```
 
 ### **3. Set Up Spotify API**
+📋 **Detailed instructions available in the [API Keys Setup Guide](#-api-keys-setup-guide) below**
+
+Quick steps:
 1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
-2. Create a new app
-3. Add redirect URI: `http://127.0.0.1:3000/api/spotify-callback`
-4. Copy your Client ID and Client Secret
+2. Create a new app with redirect URI: `http://127.0.0.1:3000/api/spotify-callback`
+3. Copy your Client ID and Client Secret
 
 ### **4. Configure Environment Variables**
-Create a `.env.local` file in the root directory:
-```env
-SPOTIFY_CLIENT_ID=your_spotify_client_id_here
-SPOTIFY_CLIENT_SECRET=your_spotify_client_secret_here
-```
+1. Copy the example file: `cp .env.example .env.local`
+2. Edit `.env.local` with your Spotify credentials:
+   ```env
+   SPOTIFY_CLIENT_ID=your_spotify_client_id_here
+   SPOTIFY_CLIENT_SECRET=your_spotify_client_secret_here
+   ```
 
 ### **5. Run the Application**
 ```bash
@@ -102,6 +105,75 @@ npm run dev
 ```
 
 Visit `http://localhost:3000` to start discovering music!
+
+## 🔑 **API Keys Setup Guide**
+
+### **Required: Spotify API Keys**
+
+The Music Discovery App requires Spotify API credentials to create playlists. Here's how to get them:
+
+#### **Step 1: Create a Spotify Developer Account**
+1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+2. Log in with your Spotify account (or create one if you don't have it)
+3. Accept the Developer Terms of Service
+
+#### **Step 2: Create a New App**
+1. Click **"Create App"** in the Spotify Developer Dashboard
+2. Fill in the required information:
+   - **App name**: `Music Discovery App` (or any name you prefer)
+   - **App description**: `AI-powered music discovery and playlist creation`
+   - **Website**: `http://localhost:3000` (for development)
+   - **Redirect URI**: `http://127.0.0.1:3000/api/spotify-callback`
+   - **API/SDKs**: Select "Web API"
+3. Click **"Save"**
+
+#### **Step 3: Get Your API Credentials**
+1. After creating the app, you'll see your **Client ID** and **Client Secret**
+2. Click **"Show Client Secret"** to reveal it
+3. Copy both values - you'll need them for the environment variables
+
+#### **Step 4: Configure Environment Variables**
+1. Copy the `.env.example` file to `.env.local`:
+   ```bash
+   cp .env.example .env.local
+   ```
+2. Open `.env.local` and replace the placeholder values:
+   ```env
+   SPOTIFY_CLIENT_ID=your_actual_client_id_here
+   SPOTIFY_CLIENT_SECRET=your_actual_client_secret_here
+   ```
+
+#### **Step 5: Verify Setup**
+1. Start the development server: `npm run dev`
+2. Visit `http://localhost:3000`
+3. Click "Connect to Spotify" - you should be redirected to Spotify for authorization
+4. After authorization, you should see "Connected to Spotify" in the UI
+
+### **Optional: Additional API Keys**
+
+The app works perfectly with just Spotify API keys, but you can optionally add:
+
+#### **OpenAI API Key** (for advanced features)
+- Get from: [OpenAI Platform](https://platform.openai.com/api-keys)
+- Add to `.env.local`: `OPENAI_API_KEY=your_openai_key_here`
+
+#### **Cohere API Key** (for advanced features)
+- Get from: [Cohere Platform](https://cohere.ai/)
+- Add to `.env.local`: `COHERE_API_KEY=your_cohere_key_here`
+
+#### **Weaviate Configuration** (for vector database)
+- Only needed if you want to use Weaviate for advanced search
+- Add to `.env.local`:
+  ```env
+  WEAVIATE_CLUSTER_URL=your_weaviate_url_here
+  WEAVIATE_API_KEY=your_weaviate_key_here
+  ```
+
+### **Security Notes**
+- ⚠️ **Never commit your `.env.local` file to version control**
+- ✅ The `.env.example` file is safe to commit (contains no real keys)
+- 🔒 Keep your API keys secure and don't share them publicly
+- 🔄 If you accidentally expose your keys, regenerate them in the Spotify Dashboard
 
 ## 🎯 **How to Use**
 
