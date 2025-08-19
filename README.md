@@ -1,125 +1,261 @@
-# Book Recommendation System (BookRecs)
-[![Weaviate](https://img.shields.io/static/v1?label=powered%20by&message=Weaviate%20%E2%9D%A4&color=green&style=flat-square)](https://weaviate.io/) 
-[![Demo](https://img.shields.io/badge/Check%20out%20the%20demo!-yellow?&style=flat-square&logo=react&logoColor=white)](https://bookrecs.weaviate.io/)
+# 🎵 Music Discovery App
 
+[![Next.js](https://img.shields.io/badge/Next.js-13-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.3-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+[![Spotify API](https://img.shields.io/badge/Spotify_API-1.0-1DB954?style=flat-square&logo=spotify)](https://developer.spotify.com/)
 
-This project is a book recommendation service that suggests books based on a user's inputted genre and book titles. It's built upon a database of 7000 books retrieved from Kaggle. Using Ada v2 as the large language model, vector embeddings were created with the Kaggle dataset to allow for quick vector search to find semantically similar books through natural language input. The frontend is built using Next.js and styled with TailwindCSS.
+A powerful AI-powered music discovery application that helps you find your next favorite songs and create personalized Spotify playlists. Built with Next.js, TypeScript, and integrated with Spotify's API for seamless playlist creation.
 
-![Project Screenshot](/BookRecs.gif)
+![Music Discovery App](https://img.shields.io/badge/Music_Discovery-120,000%2B_Tracks-1DB954?style=for-the-badge)
 
-## 📑 Table of Contents
+## ✨ Features
 
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Data Source](#data-source)
-- [Tech Stack](#tech-stack)
-- [Contributing](#contributing)
-- [License](#license)
+### 🎯 **AI-Powered Music Discovery**
+- **120,000+ high-quality tracks** in the database
+- **Semantic search** based on genres, moods, artists, and descriptions
+- **Smart filtering** by popularity and genre quality
+- **Real-time recommendations** as you type
 
-## 💫 Features
+### 🎵 **Spotify Integration**
+- **Seamless authentication** with Spotify OAuth
+- **Automatic playlist creation** with 25 and 100-track options
+- **Direct links** to created playlists on Spotify
+- **User-friendly interface** with authentication status
 
-- Input genre and book titles to get book recommendations
-- Vector Search on Weaviate Vector database of 7000 books
-- Jupyter Notebook workflow to access and store vector embeddings in Weaviate
-- Responsive design, thanks to TailwindCSS
-- Uses Ollama or OpenAI for vector generation and inference.
+### 🚀 **Performance Optimized**
+- **Lightning-fast search** using optimized JSON database
+- **No external API calls** for recommendations (reduces latency)
+- **Efficient data structure** for instant results
+- **Responsive design** for all devices
 
-## 🛠 Installation
+### 🎨 **Modern UI/UX**
+- **Beautiful gradient design** with purple/pink theme
+- **Interactive track cards** with album artwork
+- **Modal details** for each track
+- **Loading animations** and smooth transitions
+- **Error handling** with user-friendly messages
 
-To run the project locally, follow these steps:
+## 📊 **Database Statistics**
 
-Clone the repository
-   ```
-   git clone https://github.com/weaviate/BookRecs.git
-   ```
+- **Total Tracks**: 120,000+
+- **Genres**: 50+ different genres
+- **Popularity Range**: 0-100 (filtered for quality)
+- **Data Sources**: Multiple high-quality CSV exports
+- **Search Speed**: Near-instant results
 
-### The Data Pipeline
+## 🛠 **Tech Stack**
 
-The data pipeline shows you how to connect with Weaviate, generate embeddings using integrated modules with Weaviate through OpenAI or Ollama, and then query them using semantic search and vector search. Choose between one of the following options.
+### **Frontend**
+- **Next.js 13** - React framework with API routes
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first styling
+- **React Hooks** - State management
+- **React Modal** - Interactive components
 
-#### Data Pipeline Using Ollama (Option1)
+### **Backend**
+- **Next.js API Routes** - Serverless functions
+- **Spotify Web API** - Music data and playlist creation
+- **JSON Database** - Fast in-memory search
+- **Cookie-based Auth** - Secure session management
 
-If you're using Ollama with this project, follow the instructions found in the [ollama/README.md](./data-pipeline/ollama/README.md) to set up Ollama and Weaviate running locally. 
+### **Data Pipeline**
+- **Python** - Data processing and cleaning
+- **Pandas** - CSV manipulation and analysis
+- **JSON Export** - Optimized data structure
+- **Deduplication** - Clean, unique dataset
 
-#### Data Pipeline Using OpenAI (Option2)
+## 🚀 **Quick Start**
 
-If you're using OpenAI with this project, make sure to create a Weaviate Cloud cluster in WCD and get an API key from OpenAI. There are instructions to get an API key from the official [OpenAI Docs](https://platform.openai.com/docs/api-reference/introduction). You'll also need to fund the account.
+### **Prerequisites**
+- Node.js 18+ 
+- npm or yarn
+- Spotify Developer Account
 
-Once you have the above dependencies sorted out, you can follow the instructions in the [openai/README.md](./data-pipeline/openai/README.md)
-
-### The Web Application
-
-Once you've set up Weaviate and understand how the data pipeline works you can move over to the BookRecs web application written in NextJS. 
-
-**Note**: The web application is configured only to use OpenAI and WCD as an introduction on how to leverage Weaviate. It can be modified to use Ollama and a locally running Weaviate instance, but this project won't do that ouf of the box.
-
-Additionally, this project has access to an existing WCD Cluster with an API Key configured to only allow READing from the public WCD cluster.
-
-Install dependencies
-   ```
-   cd bookrecs
-   npm install
-   ```
-Run the app
-   ```
-   npm run dev
-   ```
-Try out BookRecs in a browser at http://localhost:3000
-
-
-## 🤝 Configuring Cohere Integration
-
-This project provides book recommendations using a vector database for semantic search. An additional feature is the integration with Cohere through the Weaviate Generative Search module, which provides explainations as to why a user might like a particular book recommendation.
-
-If you would like to enable this feature, you will need to configure the COHERE_API_KEY and NEXT_PUBLIC_COHERE_CONFIGURED environment variables.
-
-Steps
-1. Obtain a Cohere API key by signing up on the [Cohere website](https://cohere.com).
-2. Once you have your API key, open the .env file in the root directory of the project.
-3. Add the following line to the file, replacing 'INSERT_OPEN_API_KEY_HERE' with the API key you obtained from Cohere:
+### **1. Clone the Repository**
+```bash
+git clone https://github.com/yourusername/music-discovery-app.git
+cd music-discovery-app
 ```
-COHERE_API_KEY=INSERT_OPENAPI_KEY_HERE
+
+### **2. Install Dependencies**
+```bash
+npm install
 ```
-4. To enable the Cohere integration, set the NEXT_PUBLIC_COHERE_CONFIGURED environment variable to "1". Add the following line to the .env file:
+
+### **3. Set Up Spotify API**
+1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+2. Create a new app
+3. Add redirect URI: `http://127.0.0.1:3000/api/spotify-callback`
+4. Copy your Client ID and Client Secret
+
+### **4. Configure Environment Variables**
+Create a `.env.local` file in the root directory:
+```env
+SPOTIFY_CLIENT_ID=your_spotify_client_id_here
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret_here
 ```
-NEXT_PUBLIC_COHERE_CONFIGURED=1
+
+### **5. Run the Application**
+```bash
+npm run dev
 ```
-5. Save the .env file and restart your development server. The Cohere integration should now be enabled.
 
-Please note that the COHERE_API_KEY should be kept secret and not exposed to the client-side of your application.
+Visit `http://localhost:3000` to start discovering music!
 
+## 🎯 **How to Use**
 
-## 🧰 Usage
+### **1. Discover Music**
+- Enter a genre, mood, or artist in the search field
+- Add your favorite songs for personalized recommendations
+- Optionally exclude certain artists
+- Click "Discover Music" to get recommendations
 
-To use the service, simply type in a genre and several book titles in the provided input fields. The system will then generate several book recommendations based on your inputs.
+### **2. Connect to Spotify**
+- Click "Connect to Spotify" to authorize the app
+- Grant permissions for playlist creation
+- Your authentication status will be displayed
 
-You can try this at https://bookrecs.weaviate.io
+### **3. Create Playlists**
+- Generate music recommendations first
+- Click "Generate Playlists on Spotify"
+- Choose to create 25-track and 100-track playlists
+- Get direct links to your new playlists
 
-You must set at least on OPENAI_API_KEY environment variable. You can also set up your own Weaviate cluster and create embeddings yourself. If you choose not to do this, BookRecs will use a Read Only API key for an existing Weaviate cluster containing the Kaggle dataset. 
+## 📁 **Project Structure**
 
+```
+├── pages/
+│   ├── api/                    # API routes
+│   │   ├── create-playlists.ts # Spotify playlist creation
+│   │   ├── fast-recommendations.ts # Music search
+│   │   ├── spotify-auth.ts     # OAuth authentication
+│   │   └── spotify-callback.ts # OAuth callback
+│   ├── _app.tsx               # App wrapper
+│   └── index.tsx              # Main page
+├── components/
+│   └── ui/                    # Reusable UI components
+├── data-pipeline/
+│   ├── exports/               # CSV data files
+│   ├── tracks_database.json   # Optimized database
+│   └── *.py                   # Data processing scripts
+├── styles/
+│   └── globals.css            # Global styles
+└── types.ts                   # TypeScript definitions
+```
 
-## 💾 Data Source
+## 🔧 **Data Pipeline**
 
-The book data used for this project is sourced from the following Kaggle dataset: [7k books with metadata](https://www.kaggle.com/datasets/dylanjcastillo/7k-books-with-metadata). The dataset has been converted to a vector embedding using the sentence-transformer model for improved natural language processing and stored in a Weaviate clustor for fast vector lookups.
+The application includes a comprehensive data pipeline for processing and optimizing music data:
 
-## 💻 Tech Stack
+### **Data Sources**
+- Multiple CSV exports with track information
+- Spotify track metadata
+- Genre and popularity data
 
-- [NodeJS version 18.12.1 or above](https://nodejs.org/)
-- [Next.js](https://nextjs.org/)
-- [TailwindCSS](https://tailwindcss.com/)
-- [Python Data Pipeline](https://python.org/)
-- [Weaviate >1.25](https://weaviate.io/)
+### **Processing Steps**
+1. **Combine** all CSV files from exports directory
+2. **Deduplicate** tracks based on Spotify IDs
+3. **Filter** for quality (popularity, genre presence)
+4. **Optimize** for fast JSON-based search
+5. **Export** to `tracks_database.json`
 
-## 🕷 Known Issues
+### **Running the Pipeline**
+```bash
+cd data-pipeline
+python create_fast_csv_database.py
+```
 
-- Some book images are inaccessible due to dead links on the original data set
+## 🎨 **Customization**
 
-## 💰 Large Language Model (LLM) Costs with OpenAI
+### **Styling**
+- Modify `tailwind.config.js` for theme changes
+- Update `styles/globals.css` for custom styles
+- Edit component styles in `components/ui/`
 
-BookRecs utilizes OpenAI or Ollama models. For OpenAI -- be advised that the usage costs for these models will be billed to the API access key you provide. Primarily, costs are incurred during data embedding and answer generation processes. The default vectorization engine for this project is `text-embedding-3-small`.
+### **Data**
+- Add new CSV files to `data-pipeline/exports/`
+- Run the data pipeline to update the database
+- Customize filtering criteria in processing scripts
 
-## 💖 Open Source Contribution
+### **Features**
+- Extend API routes in `pages/api/`
+- Add new UI components in `components/`
+- Modify search logic in `fast-recommendations.ts`
 
-Your contributions are always welcome! Feel free to contribute ideas, feedback, or create issues and bug reports if you find any! Visit our [Weaviate Community Forum](https://forum.weaviate.io/) if you need any help!
+## 🐛 **Troubleshooting**
+
+### **Common Issues**
+
+**Spotify Authentication Fails**
+- Check your `.env.local` file has correct credentials
+- Verify redirect URI matches your Spotify app settings
+- Clear browser cookies and try again
+
+**No Recommendations Generated**
+- Ensure `tracks_database.json` exists in `data-pipeline/`
+- Check the search query isn't too specific
+- Verify the data pipeline has been run
+
+**Playlist Creation Fails**
+- Check Spotify API rate limits
+- Verify user is properly authenticated
+- Check browser console for error details
+
+### **Debug Mode**
+Enable detailed logging by checking the browser console (F12) for:
+- Authentication status
+- API response details
+- Error messages
+
+## 🤝 **Contributing**
+
+Contributions are welcome! Here's how you can help:
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
+4. **Push** to the branch (`git push origin feature/amazing-feature`)
+5. **Open** a Pull Request
+
+### **Development Setup**
+```bash
+# Install dependencies
+npm install
+
+# Run in development mode
+npm run dev
+
+# Build for production
+npm run build
+
+# Start production server
+npm start
+```
+
+## 📄 **License**
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 **Acknowledgments**
+
+- **Spotify** for their excellent API and music data
+- **Next.js** team for the amazing framework
+- **Tailwind CSS** for the utility-first styling
+- **The open-source community** for inspiration and tools
+
+## 📞 **Support**
+
+If you encounter any issues or have questions:
+
+1. Check the [troubleshooting section](#troubleshooting)
+2. Review the browser console for error messages
+3. Open an issue on GitHub with detailed information
+4. Check the [Spotify API documentation](https://developer.spotify.com/documentation)
+
+---
+
+**Happy Music Discovery!** 🎵✨
+
+*Built with ❤️ using Next.js, TypeScript, and the Spotify API*
 
