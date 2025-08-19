@@ -238,6 +238,54 @@ cd data-pipeline
 python create_fast_csv_database.py
 ```
 
+### **Data Collection (Optional)**
+
+If you want to generate your own dataset, the repository includes a Spotify CSV generator:
+
+📋 **See [Spotify CSV Generator README](data-pipeline/README_Spotify_CSV_Generator.md) for detailed instructions**
+
+Quick setup:
+```bash
+cd data-pipeline
+# Install dependencies
+pip install spotipy python-dotenv pandas
+
+# Copy environment file
+cp env.example .env
+# Edit .env with your Spotify API credentials
+
+# Generate 10k tracks
+TARGET_TRACKS=10000 python fetch_spotify_10k_min.py
+
+# Generate 100k tracks (10 files)
+for i in {1..10}; do TARGET_TRACKS=10000 python fetch_spotify_10k_min.py; done
+```
+
+### **Dataset Generation Process**
+
+The large dataset of 120,000+ tracks was generated using a custom Spotify CSV generator. This process involved:
+
+#### **Batch Collection Strategy**
+- **10,000 tracks per run** using the Spotify Web API
+- **Multiple markets** (US, GB, CA, AU, DE, FR, BR, JP, SE, MX, NL, IT, ES, PL, KR)
+- **Diverse search queries** across different themes, genres, and time periods
+- **Deduplication** across runs using persistent tracking of seen track IDs
+
+#### **Data Quality Features**
+- **Genre enrichment** by fetching artist genres in batches
+- **Popularity filtering** to ensure high-quality tracks
+- **Comprehensive metadata** including album art, release dates, and ISRC codes
+- **Randomized queries** to maximize diversity and avoid API rate limits
+
+#### **Collection Process**
+1. **Setup**: Configure Spotify API credentials
+2. **Batch runs**: Execute multiple 10k-track collection runs
+3. **Deduplication**: Automatic removal of duplicate tracks across runs
+4. **Enrichment**: Fetch additional artist and genre data
+5. **Export**: Generate timestamped CSV files with full metadata
+
+The final dataset represents a diverse collection of high-quality tracks across multiple genres, decades, and regions, providing users with a rich foundation for music discovery.
+
 ## 🎨 **Customization**
 
 ### **Styling**
@@ -311,6 +359,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 **Acknowledgments**
 
+- **[BookRecs Repository](https://github.com/weaviate/BookRecs)** - This project was forked from and inspired by the original BookRecs repository by the Weaviate team. Their excellent work on vector search and recommendation systems provided the foundation for this music discovery application.
 - **Spotify** for their excellent API and music data
 - **Next.js** team for the amazing framework
 - **Tailwind CSS** for the utility-first styling

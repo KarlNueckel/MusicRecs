@@ -102,10 +102,10 @@ error-log.txt
 temp/
 tmp/
 
-# Large data files (optional - you can commit these if you want)
-# data-pipeline/exports/  # Commented out to include exports in repo
-# data-pipeline/tracks_database.json  # Commented out to include database in repo
-# data-pipeline/optimized_tracks.csv  # Commented out to include optimized data in repo
+# Large data files (excluded to avoid GitHub size limits)
+data-pipeline/exports/
+data-pipeline/tracks_database.json
+data-pipeline/optimized_tracks.csv
 
 # Development files
 .DS_Store
