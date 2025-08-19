@@ -1,0 +1,8 @@
+exports/
+seen_track_ids.jsonl
+artist_genres_cache.json
+weaviate_data/
+.env
+*.log
+temp/
+tmp/
