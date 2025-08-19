@@ -106,6 +106,8 @@ npm run dev
 
 Visit `http://localhost:3000` to start discovering music!
 
+**🎉 That's it!** The app includes a sample database with 5,000 tracks, so you can start discovering music immediately without any additional setup.
+
 ## 🔑 **API Keys Setup Guide**
 
 ### **Required: Spotify API Keys**
@@ -237,6 +239,20 @@ The application includes a comprehensive data pipeline for processing and optimi
 cd data-pipeline
 python create_fast_csv_database.py
 ```
+
+### **Sample Database for Immediate Testing**
+
+The repository includes a **sample database** with 5,000 high-quality tracks for immediate testing:
+
+- **File**: `data-pipeline/tracks_database_sample.json`
+- **Size**: ~2MB (much smaller than full database)
+- **Tracks**: 5,000 popular tracks across various genres
+- **Purpose**: Allows users to test the app immediately without generating data
+
+The app will automatically use the sample database if the full database isn't available. Users can:
+1. **Test immediately** with the sample database
+2. **Generate more data** using the Spotify CSV generator
+3. **Create their own full database** when ready
 
 ### **Data Collection (Optional)**
 

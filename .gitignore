@@ -107,6 +107,9 @@ data-pipeline/exports/
 data-pipeline/tracks_database.json
 data-pipeline/optimized_tracks.csv
 
+# Sample database (included for immediate testing)
+# data-pipeline/tracks_database_sample.json
+
 # Development files
 .DS_Store
 Thumbs.db

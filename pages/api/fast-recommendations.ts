@@ -27,13 +27,19 @@ function loadTracksDatabase(): Track[] {
   }
 
   try {
-    const jsonPath = path.join(process.cwd(), 'data-pipeline', 'tracks_database.json');
-    console.log('Attempting to load database from:', jsonPath);
+    // Try to load the full database first
+    let jsonPath = path.join(process.cwd(), 'data-pipeline', 'tracks_database.json');
+    console.log('Attempting to load full database from:', jsonPath);
     
-    // Check if file exists
+    // Check if full database exists
     if (!fs.existsSync(jsonPath)) {
-      console.error('Database file does not exist at:', jsonPath);
-      return [];
+      console.log('Full database not found, trying sample database...');
+      jsonPath = path.join(process.cwd(), 'data-pipeline', 'tracks_database_sample.json');
+      
+      if (!fs.existsSync(jsonPath)) {
+        console.error('Neither full nor sample database found at:', jsonPath);
+        return [];
+      }
     }
     
     const data = fs.readFileSync(jsonPath, 'utf8');
