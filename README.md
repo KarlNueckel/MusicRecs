@@ -9,6 +9,11 @@ A powerful AI-powered music discovery application that helps you find your next 
 
 ![Music Discovery App](https://img.shields.io/badge/Music_Discovery-120,000%2B_Tracks-1DB954?style=for-the-badge)
 
+## 🎬 Demo Video
+
+[![Music Discovery App Demo](https://img.youtube.com/vi/QUucUhav3BY/maxresdefault.jpg)](https://www.youtube.com/watch?v=QUucUhav3BY&ab_channel=KarlKodes)
+**[Watch the full demo on YouTube](https://www.youtube.com/watch?v=QUucUhav3BY&ab_channel=KarlKodes)**
+
 ## ✨ Features
 
 ### 🎯 **AI-Powered Music Discovery**
